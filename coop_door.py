@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#--------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
 # coop_door.py für den automatischen Start eingetragen als Service: 
-#
-# sudo nano /etc/systemd/system/coop_door.service
-#
 # Content in Service:
 # [Unit]
 # Description=Coop Door Control Service
@@ -36,19 +33,8 @@
 # sudo systemctl status coop_door  
 # 
 # Dienst für den Autostart aktivieren
-# sudo systemctl enable coop_door  
-#
-#
-# Checking the logs:
-# journalctl -u coop_door --no-pager -n 50
-# Checking the logs in realtime:
-# journalctl -u coop_door -f
-# 
-#
-# CHANGELOG:
-# 2024-08-11:
-# Initiales Set-Up des Skripts
-#--------------------------------------------------------------------------------
+# sudo systemctl enable coop_door
+# --------------------------------------------------------------------------------
 
 import RPi.GPIO as gpio
 import paho.mqtt.client as mqtt
@@ -58,23 +44,22 @@ import logging.handlers
 from misc.config_loader import Config
 from misc.coop_door_state import CoopDoorState
 
-COOP_DOOR_OPEN_PIN = 16
-COOP_DOOR_CLOSE_PIN = 20
-COOP_DOOR_SPEED_PIN = 21
+cfg = Config()
 
-# MQTT Broker (running on the OpenHAB Server)
-BROKER_ADDRESS = 'house.lan'
-MQTT_COMMAND_TOPIC = 'garden/chickens/coopdoor'
-MQTT_COOP_DOOR_STATE_TOPIC = 'garden/chickens/coopdoor/state'
+COOP_DOOR_OPEN_PIN = cfg.get_coop_door_open_pin()
+COOP_DOOR_CLOSE_PIN = cfg.get_coop_door_close_pin()
+COOP_DOOR_SPEED_PIN = cfg.get_coop_door_speed_pin()
+
+MQTT_COMMAND_TOPIC = cfg.get_mqtt_topic_command()
+MQTT_COOP_DOOR_STATE_TOPIC = cfg.get_mqtt_topic_state()
 
 DUTY_CYCLE_MIN = 0
-# 100% performance, so the full power goes to the motor. At 12 V with 75% it would only be 9 V given to the motor, e.g.; to be tried out, if 75% would also be enough!
+# 100% performance, so the full power goes to the motor. At 12 V with 75% it would only be 9 V given to the motor, e.g.;
+# to be tried out, if 75% would also be enough!
 DUTY_CYCLE_MAX = 100
 
-cfg = Config("config/config.ini")
-mqtt_config = cfg.get_mqtt()
-
 pwm_speed = None
+
 
 def reset_pins():
     log('Resetting pins to original state')
@@ -121,58 +106,61 @@ def on_message(client, userdata, message):
 
 def on_connect(client, userdata, flags, reason_code, properties):
     client.subscribe(MQTT_COMMAND_TOPIC)
-    #client.subscribe(MQTT_COOP_DOOR_STATE_TOPIC)
+    # client.subscribe(MQTT_COOP_DOOR_STATE_TOPIC)
     log('Connected to mqtt broker and topic %s' % MQTT_COMMAND_TOPIC)
 
 
 def setup_logging():
-    log_handler = logging.handlers.WatchedFileHandler('/var/log/coop/coop_door.log')
+    log_handler = logging.handlers.WatchedFileHandler(cfg.get_coop_door_logging_logfile())
     formatter = logging.Formatter(
-        '%(asctime)s: %(message)s',
-        "%Y-%m-%d %H:%M:%S")
+        cfg.get_coop_door_logging_message_format(),
+        cfg.get_coop_door_logging_date_time_format()
+    )
     log_handler.setFormatter(formatter)
     logger = logging.getLogger()
     logger.addHandler(log_handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(cfg.get_coop_door_logging_level())
 
 
-def log(message: str, *args, level: int = logging.INFO) -> None:
-    if args:
-        logging.log(level, message, args)
+def log(message: str, *args, level: int = logging.INFO, exc=None) -> None:
+    if exc:
+        logging.log(level, message, *args, exc_info=exc)
     else:
-        logging.log(level, message)
-        
+        logging.log(level, message, *args)
+
+
 def init_pins():
     global pwm_speed
     gpio.setmode(gpio.BCM)
     gpio.setup([COOP_DOOR_OPEN_PIN, COOP_DOOR_CLOSE_PIN], gpio.OUT, initial=gpio.LOW)
     gpio.setup(COOP_DOOR_SPEED_PIN, gpio.OUT)
-    
+
     pwm_speed = gpio.PWM(COOP_DOOR_SPEED_PIN, DUTY_CYCLE_MAX)  # 100 Hz
     pwm_speed.start(DUTY_CYCLE_MIN)  # start with switched off motor (= 0%)
+
 
 def main():
     setup_logging()
     client = None
     try:
         init_pins()
-        
+
         log('Connecting to mqtt')
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         log('Mqtt client created')
-        client.username_pw_set('chicken', '0T"P0vy=`u.beNmUY^i.')
+        client.username_pw_set(cfg.get_mqtt_username(), cfg.get_mqtt_password())
         log('Mqtt username and password set')
         client.on_connect = on_connect
         client.on_message = on_message
         log('Trying to connect to Mqtt server')
-        client.connect(BROKER_ADDRESS)
+        client.connect(cfg.get_mqtt_broker())
         log('Connected to Mqtt server')
         client.loop_forever(retry_first_connection=False)
     except KeyboardInterrupt:
         pass
     except Exception as err:
         pass
-        log('coop_door.py broke with exception', err, logging.ERROR)
+        log('coop_door.py broke with exception', level=logging.ERROR, exc=err)
     finally:
         if client:
             client.loop_stop()

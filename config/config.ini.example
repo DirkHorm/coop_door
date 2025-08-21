@@ -1,24 +1,28 @@
 [MQTT]
-broker = ''
-username = ''
-password = ''
-topic_command = ''
-topic_state = ''
+broker = 192.168.1.10
+username = my_mqtt_user
+password = myMqttP455w0rd
+topic_command = my/coopdoor/topic
+topic_state = my/coopdoor/state/topic
 
 [COOP_DOOR_LOGGING]
-logfile = '/var/log/coop/coop.log'
-level = 'INFO'
+logfile = /var/log/coop/coop.log
+level = INFO
+message_format: %(asctime)s: %(message)s
+date_time_format: %Y-%m-%d %H:%M:%S
 
 [COOP_DOOR_BUTTONS_LOGGING]
-logfile = '/var/log/coop/coop_door_buttons.log'
-level = 'INFO'
+logfile = /var/log/coop/coop_door_buttons.log
+level = INFO
+message_format: %(asctime)s: %(message)s
+date_time_format: %Y-%m-%d %H:%M:%S
 
 [COOP_DOOR]
-open_pin =
-close_pin =
-speed_pin =
+open_pin = 16
+close_pin = 20
+speed_pin = 21
 
 [COOP_DOOR_BUTTONS]
-open_btn_pin =
-stop_btn_pin =
-close_btn_pin =
+open_pin = 13
+stop_pin = 6
+close_pin = 5
