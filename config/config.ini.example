@@ -1,0 +1,24 @@
+[MQTT]
+broker = ''
+username = ''
+password = ''
+topic_command = ''
+topic_state = ''
+
+[COOP_DOOR_LOGGING]
+logfile = '/var/log/coop/coop.log'
+level = 'INFO'
+
+[COOP_DOOR_BUTTONS_LOGGING]
+logfile = '/var/log/coop/coop_door_buttons.log'
+level = 'INFO'
+
+[COOP_DOOR]
+open_pin =
+close_pin =
+speed_pin =
+
+[COOP_DOOR_BUTTONS]
+open_btn_pin =
+stop_btn_pin =
+close_btn_pin =
