@@ -23,6 +23,8 @@ MQTT_COOP_DOOR_REALTIME_STATE_TOPIC = cfg.get_mqtt_topic_realtime_state()
 # Global last state to only publish a state, when it changed
 last_state = None
 
+door_open_sensor = None
+door_closed_sensor = None
 
 def setup_logging():
     log_handler = logging.handlers.WatchedFileHandler(cfg.get_coop_door_sensors_logging_logfile())

@@ -25,6 +25,9 @@ MQTT_COMMAND_TOPIC = cfg.get_mqtt_topic_command()
 # Wartezeit für Entprellung in Sekunden
 DEBOUNCE_DELAY = 0.05
 
+up_button = None
+stop_button = None
+down_button = None
 
 def coop_door_open():
     log(f'Button up pressed (confirmed)')
