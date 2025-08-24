@@ -25,6 +25,7 @@ MQTT_COMMAND_TOPIC = cfg.get_mqtt_topic_command()
 # Wartezeit für Entprellung in Sekunden
 DEBOUNCE_DELAY = 0.05
 
+client = None
 up_button = None
 stop_button = None
 down_button = None
@@ -101,15 +102,14 @@ def log(message: str, *args, level: int = logging.INFO, exc=None) -> None:
     else:
         logging.log(level, message, *args)
 
-
 def init_buttons():
+    global up_button, stop_button, down_button
     up_button = Button(UP_PIN, pull_up=True)
     stop_button = Button(STOP_PIN, pull_up=True)
     down_button = Button(DOWN_PIN, pull_up=True)
 
-
 def main():
-    client = None
+    global client
     setup_logging()
     try:
         init_buttons()
@@ -140,3 +140,6 @@ def main():
             client.unsubscribe(MQTT_COMMAND_TOPIC)
             client.disconnect()
         log('Finishing coop door buttons script')
+
+if __name__ == '__main__':
+    main()

@@ -23,8 +23,10 @@ MQTT_COOP_DOOR_REALTIME_STATE_TOPIC = cfg.get_mqtt_topic_realtime_state()
 # Global last state to only publish a state, when it changed
 last_state = None
 
+client = None
 door_open_sensor = None
 door_closed_sensor = None
+
 
 def setup_logging():
     log_handler = logging.handlers.WatchedFileHandler(cfg.get_coop_door_sensors_logging_logfile())
@@ -80,14 +82,15 @@ def on_connect(client, userdata, flags, result_code, properties):
 
 
 def init_sensors():
+    global door_open_sensor, door_closed_sensor
     # Initialize sensors
     door_open_sensor = Button(SENSOR_COOP_DOOR_OPENED_PIN, pull_up=True, bounce_time=0.05)
     door_closed_sensor = Button(SENSOR_COOP_DOOR_CLOSED_PIN, pull_up=True, bounce_time=0.05)
 
 
 def main():
+    global client
     setup_logging()
-    client = None
     try:
         init_sensors()
 
@@ -120,6 +123,7 @@ def main():
             client.loop_stop()
             client.disconnect()
         log('Finishing coop door sensors script')
+
 
 if __name__ == '__main__':
     main()
