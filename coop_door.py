@@ -1,41 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# --------------------------------------------------------------------------------
-# coop_door.py für den automatischen Start eingetragen als Service: 
-# Content in Service:
-# [Unit]
-# Description=Coop Door Control Service
-# After=network.target
-# Wants=network-online.target
-# 
-# [ Service]
-# ExecStart=/bin/bash -c 'source /pyVEnv/coop/bin/activate && /pyVEnv/coop/bin/python /home/dirk/coop/coop_door.py'
-# WorkingDirectory=/home/dirk/coop
-# Restart=always
-# User=root
-# Group=root
-# Environment="PYTHONUNBUFFERED=1"
-# StandardOutput=syslog
-# StandardError=syslog
-# 
-# [Install]
-# WantedBy=multi-user.target
-# 
-# Run the service automatically:
-# Systemd neu laden, damit die neue Service-Datei erkannt wird
-# sudo systemctl daemon-reload  
-# 
-# Dienst starten
-# sudo systemctl start coop_door  
-# 
-# Status des Dienstes prüfen
-# sudo systemctl status coop_door  
-# 
-# Dienst für den Autostart aktivieren
-# sudo systemctl enable coop_door
-# --------------------------------------------------------------------------------
-
 import RPi.GPIO as gpio
 import paho.mqtt.client as mqtt
 import logging
@@ -60,7 +25,6 @@ DUTY_CYCLE_MAX = 100
 
 pwm_speed = None
 
-
 def reset_pins():
     log('Resetting pins to original state')
     gpio.output(COOP_DOOR_OPEN_PIN, gpio.LOW)
@@ -72,9 +36,9 @@ def reset_pins():
 def move_door(pin, position):
     reset_pins()
     pwm_speed.ChangeDutyCycle(DUTY_CYCLE_MAX)
-    log('Setting pin %d to HIGH for %s coop door' % (pin, position))
+    log(f'Setting pin {pin} to HIGH for {position} coop door')
     gpio.output(pin, gpio.HIGH)
-    log('Set pin %d to HIGH' % pin)
+    log(f'Set pin {pin} to HIGH')
 
 
 def stop_door_move():
@@ -86,14 +50,14 @@ def stop_door_move():
 def on_message(client, userdata, message):
     topic = message.topic
     payload = str(message.payload.decode("utf-8"))
-    log('Message received from topic "%s" with payload "%s"' % (topic, payload))
+    log(f'Message received from topic {topic} with payload {payload}')
 
     if topic == MQTT_COOP_DOOR_STATE_TOPIC:
         reset_pins()
         log('Pins for Coop Door reset')
     elif topic == MQTT_COMMAND_TOPIC:
         command = payload
-        log('Received command "%s" from broker' % command)
+        log(f'Received command {command} from broker')
         if CoopDoorState.OPEN.name == command:
             log('In OPEN')
             move_door(COOP_DOOR_OPEN_PIN, 'opening')
@@ -104,10 +68,10 @@ def on_message(client, userdata, message):
             stop_door_move()
 
 
-def on_connect(client, userdata, flags, reason_code, properties):
+def on_connect(client, userdata, flags, result_code, properties):
     client.subscribe(MQTT_COMMAND_TOPIC)
     # client.subscribe(MQTT_COOP_DOOR_STATE_TOPIC)
-    log('Connected to mqtt broker and topic %s' % MQTT_COMMAND_TOPIC)
+    log(f'Connected to mqtt broker and topic {MQTT_COMMAND_TOPIC}')
 
 
 def setup_logging():
@@ -163,13 +127,11 @@ def main():
         log('coop_door.py broke with exception', level=logging.ERROR, exc=err)
     finally:
         if client:
-            client.loop_stop()
             client.unsubscribe(MQTT_COMMAND_TOPIC)
             client.unsubscribe(MQTT_COOP_DOOR_STATE_TOPIC)
             client.disconnect()
         gpio.cleanup()  # this ensures a clean exit
         log('Finishing coop door script')
-
 
 if __name__ == '__main__':
     main()

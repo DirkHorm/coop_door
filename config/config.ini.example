@@ -4,6 +4,7 @@ username = my_mqtt_user
 password = myMqttP455w0rd
 topic_command = my/coopdoor/topic
 topic_state = my/coopdoor/state/topic
+topic_realtime_state = my/coopdoor/state/realtime-topic
 
 [COOP_DOOR_LOGGING]
 logfile = /var/log/coop/coop.log
@@ -17,6 +18,12 @@ level = INFO
 message_format: %(asctime)s: %(message)s
 date_time_format: %Y-%m-%d %H:%M:%S
 
+[COOP_DOOR_SENSORS_LOGGING]
+logfile = /var/log/coop/sensors.log
+level = INFO
+message_format: %(asctime)s: %(message)s
+date_time_format: %Y-%m-%d %H:%M:%S
+
 [COOP_DOOR]
 open_pin = 16
 close_pin = 20
@@ -26,3 +33,7 @@ speed_pin = 21
 open_pin = 13
 stop_pin = 6
 close_pin = 5
+
+[COOP_DOOR_SENSORS]
+open_pin = 19
+close_pin = 26

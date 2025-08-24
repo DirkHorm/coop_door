@@ -25,6 +25,7 @@ MQTT_COMMAND_TOPIC = cfg.get_mqtt_topic_command()
 # Wartezeit für Entprellung in Sekunden
 DEBOUNCE_DELAY = 0.05
 
+
 def coop_door_open():
     log(f'Button up pressed (confirmed)')
     current_date_and_time = dt.datetime.now()
@@ -71,12 +72,12 @@ def publish_button_press(client, button_action):
     log(f'Published coop door button move {button_action_name}')
 
 
-def on_connect(client, userdata, flags, reason_code, properties):
-    if reason_code == 0:
+def on_connect(client, userdata, flags, result_code, properties):
+    if result_code == 0:
         client.subscribe(MQTT_COMMAND_TOPIC)
         log(f'Connected to mqtt broker and topic {MQTT_COMMAND_TOPIC}')
     else:
-        log(f'Mqtt Broker connection failed with error code {reason_code}')
+        log(f'Mqtt Broker connection failed with error code {result_code}')
 
 
 def setup_logging():
@@ -90,43 +91,49 @@ def setup_logging():
     logger.addHandler(log_handler)
     logger.setLevel(cfg.get_coop_door_buttons_logging_level())
 
+
 def log(message: str, *args, level: int = logging.INFO, exc=None) -> None:
     if exc:
         logging.log(level, message, *args, exc_info=exc)
     else:
         logging.log(level, message, *args)
 
-client = None
-try:
-    setup_logging()
 
+def init_buttons():
     up_button = Button(UP_PIN, pull_up=True)
     stop_button = Button(STOP_PIN, pull_up=True)
     down_button = Button(DOWN_PIN, pull_up=True)
 
-    log('Connecting to mqtt')
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-    log('Mqtt client created')
-    client.username_pw_set(cfg.get_mqtt_username(), cfg.get_mqtt_password())
-    log('Mqtt username and password set')
-    client.on_connect = on_connect
-    log('Trying to connect to Mqtt server')
-    client.connect(BROKER_ADDRESS)
-    log('Connected to Mqtt server')
-    client.loop_start()
 
-    log('Waiting for button event')
-    stop_button.when_pressed = lambda: handle_button(stop_button, coop_door_stop)
-    up_button.when_pressed = lambda: handle_button(up_button, coop_door_open)
-    down_button.when_pressed = lambda: handle_button(down_button, coop_door_close)
+def main():
+    client = None
+    setup_logging()
+    try:
+        init_buttons()
 
-    pause()
-except KeyboardInterrupt:
-    pass
-except Exception as err:
-    log('coop_door_buttons.py broke with exception', level=logging.ERROR, exc=err)
-finally:
-    if client:
-        client.unsubscribe(MQTT_COMMAND_TOPIC)
-        client.disconnect()
-    log('Finishing coop door buttons script')
+        log('Connecting to mqtt')
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        log('Mqtt client created')
+        client.username_pw_set(cfg.get_mqtt_username(), cfg.get_mqtt_password())
+        log('Mqtt username and password set')
+        client.on_connect = on_connect
+        log('Trying to connect to Mqtt server')
+        client.connect(BROKER_ADDRESS)
+        log('Connected to Mqtt server')
+        client.loop_start()
+
+        log('Waiting for button event')
+        stop_button.when_pressed = lambda: handle_button(stop_button, coop_door_stop)
+        up_button.when_pressed = lambda: handle_button(up_button, coop_door_open)
+        down_button.when_pressed = lambda: handle_button(down_button, coop_door_close)
+
+        pause()
+    except KeyboardInterrupt:
+        pass
+    except Exception as err:
+        log('coop_door_buttons.py broke with exception', level=logging.ERROR, exc=err)
+    finally:
+        if client:
+            client.unsubscribe(MQTT_COMMAND_TOPIC)
+            client.disconnect()
+        log('Finishing coop door buttons script')

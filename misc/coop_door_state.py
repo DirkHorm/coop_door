@@ -4,3 +4,5 @@ class CoopDoorState(Enum):
     OPEN = auto()
     CLOSE = auto()
     STOP = auto()
+    RUNNING = auto()
+    UNKNOWN = auto()
