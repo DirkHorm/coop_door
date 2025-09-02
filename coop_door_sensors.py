@@ -20,7 +20,7 @@ SENSOR_COOP_DOOR_CLOSED_PIN = cfg.get_coop_door_sensors_close_pin()
 MQTT_COOP_DOOR_STATE_TOPIC = cfg.get_mqtt_topic_state()
 MQTT_COOP_DOOR_REALTIME_STATE_TOPIC = cfg.get_mqtt_topic_realtime_state()
 
-SENSOR_BOUNCE_TIME = 0.2
+SENSOR_BOUNCE_TIME = 0.3
 
 # Global last state to only publish a state, when it changed
 last_state = None
