@@ -20,6 +20,8 @@ SENSOR_COOP_DOOR_CLOSED_PIN = cfg.get_coop_door_sensors_close_pin()
 MQTT_COOP_DOOR_STATE_TOPIC = cfg.get_mqtt_topic_state()
 MQTT_COOP_DOOR_REALTIME_STATE_TOPIC = cfg.get_mqtt_topic_realtime_state()
 
+SENSOR_BOUNCE_TIME = 0.2
+
 # Global last state to only publish a state, when it changed
 last_state = None
 
@@ -56,7 +58,7 @@ def publish_state(new_state):
         realtime_state_info = client.publish(MQTT_COOP_DOOR_REALTIME_STATE_TOPIC, new_state)
         log(f'Published realtime state {new_state} to topic {MQTT_COOP_DOOR_REALTIME_STATE_TOPIC} with rc {realtime_state_info.rc}')
 
-        if new_state in [CoopDoorState.OPEN.name, CoopDoorState.CLOSE.name]:
+        if new_state in [CoopDoorState.OPEN.name, CoopDoorState.CLOSED.name]:
             state_info = client.publish(MQTT_COOP_DOOR_STATE_TOPIC, new_state, retain=True)
             log(f'Published state {new_state} to topic {MQTT_COOP_DOOR_STATE_TOPIC} with rc {state_info.rc}')
             # pass
@@ -69,7 +71,7 @@ def door_opened():
 
 
 def door_closed():
-    publish_state(CoopDoorState.CLOSE.name)
+    publish_state(CoopDoorState.CLOSED.name)
 
 
 # For the time the door is opening or closing, the state is "unknown"
@@ -84,8 +86,8 @@ def on_connect(client, userdata, flags, result_code, properties):
 def init_sensors():
     global door_open_sensor, door_closed_sensor
     # Initialize sensors
-    door_open_sensor = Button(SENSOR_COOP_DOOR_OPENED_PIN, pull_up=True, bounce_time=0.05)
-    door_closed_sensor = Button(SENSOR_COOP_DOOR_CLOSED_PIN, pull_up=True, bounce_time=0.05)
+    door_open_sensor = Button(SENSOR_COOP_DOOR_OPENED_PIN, pull_up=True, bounce_time=SENSOR_BOUNCE_TIME)
+    door_closed_sensor = Button(SENSOR_COOP_DOOR_CLOSED_PIN, pull_up=True, bounce_time=SENSOR_BOUNCE_TIME)
 
 
 def main():

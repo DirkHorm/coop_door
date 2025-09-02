@@ -61,7 +61,7 @@ def on_message(client, userdata, message):
         if CoopDoorState.OPEN.name == command:
             log('In OPEN')
             move_door(COOP_DOOR_OPEN_PIN, 'opening')
-        elif CoopDoorState.CLOSE.name == command:
+        elif CoopDoorState.CLOSED.name == command:
             log('In CLOSE')
             move_door(COOP_DOOR_CLOSE_PIN, 'closing')
         elif CoopDoorState.STOP.name == command:

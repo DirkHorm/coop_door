@@ -6,7 +6,6 @@ from signal import pause
 import paho.mqtt.client as mqtt
 import logging
 import logging.handlers
-from enum import Enum, auto
 import datetime as dt
 import time
 
@@ -22,8 +21,7 @@ DOWN_PIN = cfg.get_coop_door_buttons_close_pin()
 BROKER_ADDRESS = cfg.get_mqtt_broker()
 MQTT_COMMAND_TOPIC = cfg.get_mqtt_topic_command()
 
-# Wartezeit für Entprellung in Sekunden
-DEBOUNCE_DELAY = 0.05
+BUTTON_BOUNCE_TIME = 0.2
 
 client = None
 up_button = None
@@ -51,23 +49,13 @@ def coop_door_open():
     else:
         log(f'Prevented coop door from opening at {current_date_and_time}')
 
-
 def coop_door_stop():
     log(f'Button stop pressed (confirmed)')
     publish_button_press(client, CoopDoorState.STOP)
 
-
 def coop_door_close():
     log(f'Button down pressed (confirmed)')
-    publish_button_press(client, CoopDoorState.CLOSE)
-
-
-# Hilfsfunktion: Button-Entprellung
-def handle_button(button, action_fn):
-    time.sleep(DEBOUNCE_DELAY)
-    if button.is_pressed:  # nur wenn nach Delay noch gedrückt
-        action_fn()
-
+    publish_button_press(client, CoopDoorState.CLOSED)
 
 def publish_button_press(client, button_action):
     button_action_name = button_action.name
@@ -75,14 +63,12 @@ def publish_button_press(client, button_action):
     client.publish(MQTT_COMMAND_TOPIC, button_action_name)
     log(f'Published coop door button move {button_action_name}')
 
-
 def on_connect(client, userdata, flags, result_code, properties):
     if result_code == 0:
         client.subscribe(MQTT_COMMAND_TOPIC)
         log(f'Connected to mqtt broker and topic {MQTT_COMMAND_TOPIC}')
     else:
         log(f'Mqtt Broker connection failed with error code {result_code}')
-
 
 def setup_logging():
     log_handler = logging.handlers.WatchedFileHandler(cfg.get_coop_door_buttons_logging_logfile())
@@ -95,7 +81,6 @@ def setup_logging():
     logger.addHandler(log_handler)
     logger.setLevel(cfg.get_coop_door_buttons_logging_level())
 
-
 def log(message: str, *args, level: int = logging.INFO, exc=None) -> None:
     if exc:
         logging.log(level, message, *args, exc_info=exc)
@@ -104,9 +89,9 @@ def log(message: str, *args, level: int = logging.INFO, exc=None) -> None:
 
 def init_buttons():
     global up_button, stop_button, down_button
-    up_button = Button(UP_PIN, pull_up=True)
-    stop_button = Button(STOP_PIN, pull_up=True)
-    down_button = Button(DOWN_PIN, pull_up=True)
+    up_button = Button(UP_PIN, pull_up=True, bounce_time=BUTTON_BOUNCE_TIME)
+    stop_button = Button(STOP_PIN, pull_up=True, bounce_time=BUTTON_BOUNCE_TIME)
+    down_button = Button(DOWN_PIN, pull_up=True, bounce_time=BUTTON_BOUNCE_TIME)
 
 def main():
     global client
@@ -126,9 +111,9 @@ def main():
         client.loop_start()
 
         log('Waiting for button event')
-        stop_button.when_pressed = lambda: handle_button(stop_button, coop_door_stop)
-        up_button.when_pressed = lambda: handle_button(up_button, coop_door_open)
-        down_button.when_pressed = lambda: handle_button(down_button, coop_door_close)
+        stop_button.when_pressed = coop_door_stop
+        up_button.when_pressed = coop_door_open
+        down_button.when_pressed = coop_door_close
 
         pause()
     except KeyboardInterrupt:

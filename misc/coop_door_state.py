@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 class CoopDoorState(Enum):
     OPEN = auto()
-    CLOSE = auto()
+    CLOSED = auto()
     STOP = auto()
     RUNNING = auto()
     UNKNOWN = auto()
