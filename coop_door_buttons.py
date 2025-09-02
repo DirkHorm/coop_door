@@ -55,7 +55,7 @@ def coop_door_stop():
 
 def coop_door_close():
     log(f'Button down pressed (confirmed)')
-    publish_button_press(client, CoopDoorState.CLOSED)
+    publish_button_press(client, CoopDoorState.CLOSE)
 
 def publish_button_press(client, button_action):
     button_action_name = button_action.name
