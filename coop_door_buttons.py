@@ -7,7 +7,6 @@ import paho.mqtt.client as mqtt
 import logging
 import logging.handlers
 import datetime as dt
-import time
 
 from misc.config_loader import Config
 from misc.coop_door_state import CoopDoorState

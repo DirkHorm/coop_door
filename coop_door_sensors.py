@@ -4,7 +4,6 @@
 from gpiozero import Button
 from signal import pause
 import paho.mqtt.client as mqtt
-import time
 import logging
 import logging.handlers
 
