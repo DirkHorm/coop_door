@@ -11,6 +11,7 @@ import time
 
 from misc.config_loader import Config
 from misc.coop_door_state import CoopDoorState
+from misc.coop_door_command import CoopDoorCommand
 
 cfg = Config()
 
@@ -20,6 +21,7 @@ DOWN_PIN = cfg.get_coop_door_buttons_close_pin()
 
 BROKER_ADDRESS = cfg.get_mqtt_broker()
 MQTT_COMMAND_TOPIC = cfg.get_mqtt_topic_command()
+MQTT_COOP_DOOR_REALTIME_STATE_TOPIC = cfg.get_mqtt_topic_realtime_state()
 
 BUTTON_BOUNCE_TIME = 0.2
 
@@ -45,23 +47,32 @@ def coop_door_open():
     )
 
     if earliest_open_datetime < current_date_and_time < latest_open_datetime:
-        publish_button_press(client, CoopDoorState.OPEN)
+        publish_button_press(client, CoopDoorCommand.OPEN)
+        publish_realtime_state(client, CoopDoorState.RUNNING)
     else:
         log(f'Prevented coop door from opening at {current_date_and_time}')
 
 def coop_door_stop():
     log(f'Button stop pressed (confirmed)')
-    publish_button_press(client, CoopDoorState.STOP)
+    publish_button_press(client, CoopDoorCommand.STOP)
+    publish_realtime_state(client, CoopDoorState.STOPPED)
 
 def coop_door_close():
     log(f'Button down pressed (confirmed)')
-    publish_button_press(client, CoopDoorState.CLOSE)
+    publish_button_press(client, CoopDoorCommand.CLOSE)
+    publish_realtime_state(client, CoopDoorState.RUNNING)
 
 def publish_button_press(client, button_action):
     button_action_name = button_action.name
     log(f'Publishing coop door button move {button_action_name}')
     client.publish(MQTT_COMMAND_TOPIC, button_action_name)
     log(f'Published coop door button move {button_action_name}')
+
+def publish_realtime_state(client, state):
+    state_name = state.name
+    log(f'Publishing coop door real state {state_name}')
+    client.publish(MQTT_COOP_DOOR_REALTIME_STATE_TOPIC, state_name)
+    log(f'Published coop door real state {state_name}')
 
 def on_connect(client, userdata, flags, result_code, properties):
     if result_code == 0:

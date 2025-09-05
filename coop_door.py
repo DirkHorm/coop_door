@@ -7,7 +7,7 @@ import logging
 import logging.handlers
 
 from misc.config_loader import Config
-from misc.coop_door_state import CoopDoorState
+from misc.coop_door_command import CoopDoorCommand
 
 cfg = Config()
 
@@ -52,25 +52,27 @@ def on_message(client, userdata, message):
     payload = str(message.payload.decode("utf-8"))
     log(f'Message received from topic {topic} with payload {payload}')
 
+    # When the sensors deliver a closed or open state from the state topic, the pins will be reset
     if topic == MQTT_COOP_DOOR_STATE_TOPIC:
         reset_pins()
         log('Pins for Coop Door reset')
+    # if it's the command topic, the door will be changed
     elif topic == MQTT_COMMAND_TOPIC:
         command = payload
         log(f'Received command {command} from broker')
-        if CoopDoorState.OPEN.name == command:
+        if CoopDoorCommand.OPEN.name == command:
             log('In OPEN')
             move_door(COOP_DOOR_OPEN_PIN, 'opening')
-        elif CoopDoorState.CLOSE.name == command:
+        elif CoopDoorCommand.CLOSE.name == command:
             log('In CLOSE')
             move_door(COOP_DOOR_CLOSE_PIN, 'closing')
-        elif CoopDoorState.STOP.name == command:
+        elif CoopDoorCommand.STOP.name == command:
             stop_door_move()
 
 
 def on_connect(client, userdata, flags, result_code, properties):
     client.subscribe(MQTT_COMMAND_TOPIC)
-    # client.subscribe(MQTT_COOP_DOOR_STATE_TOPIC)
+    client.subscribe(MQTT_COOP_DOOR_STATE_TOPIC)
     log(f'Connected to mqtt broker and topic {MQTT_COMMAND_TOPIC}')
 
 

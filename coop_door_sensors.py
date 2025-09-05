@@ -48,31 +48,27 @@ def log(message: str, *args, level: int = logging.INFO, exc=None) -> None:
     else:
         logging.log(level, message, *args)
 
-
 def publish_state(new_state):
     global last_state
-    log(f'Current state {last_state}, new state {new_state}')
+    log(f'Current realtime state {last_state}, new state {new_state}')
     # only publish when state changed
     if new_state != last_state:
-        log(f'State changed from {last_state} to {new_state}')
+        log(f'Realtime state changed from {last_state} to {new_state}')
         realtime_state_info = client.publish(MQTT_COOP_DOOR_REALTIME_STATE_TOPIC, new_state)
         log(f'Published realtime state {new_state} to topic {MQTT_COOP_DOOR_REALTIME_STATE_TOPIC} with rc {realtime_state_info.rc}')
 
+        # Only open and closed are published to the state topic which can be used to set a switch in OpenHab, e.g.
         if new_state in [CoopDoorState.OPEN.name, CoopDoorState.CLOSED.name]:
             state_info = client.publish(MQTT_COOP_DOOR_STATE_TOPIC, new_state, retain=True)
             log(f'Published state {new_state} to topic {MQTT_COOP_DOOR_STATE_TOPIC} with rc {state_info.rc}')
-            # pass
 
         last_state = new_state
-
 
 def door_opened():
     publish_state(CoopDoorState.OPEN.name)
 
-
 def door_closed():
     publish_state(CoopDoorState.CLOSED.name)
-
 
 # For the time the door is opening or closing, the state is "unknown"
 def door_running():
