@@ -13,6 +13,11 @@ The scripts can also run under other configurations, but were only tested in the
 
 ## Config
 
+The configuration of the scripts mainly takes place in the *config/config.ini*. Please find an example file named *config.ini.example*
+in the *config* folder, rename it to *config.ini* and adapt the config params to your needs.
+
+I think the config params are self-explanatory.
+
 ## Coop Door
 The *coop_door.py* is the main script of this repo. It is responsible for opening, closing and stopping 
 the coop door. If you only want to automatically control your coop door, use this script!
