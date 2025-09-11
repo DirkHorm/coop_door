@@ -22,7 +22,7 @@ BROKER_ADDRESS = cfg.get_mqtt_broker()
 MQTT_COMMAND_TOPIC = cfg.get_mqtt_topic_command()
 MQTT_COOP_DOOR_REALTIME_STATE_TOPIC = cfg.get_mqtt_topic_realtime_state()
 
-BUTTON_BOUNCE_TIME = 0.2
+BUTTON_BOUNCE_TIME = 0.1
 
 client = None
 up_button = None
@@ -63,15 +63,15 @@ def coop_door_close():
 
 def publish_button_press(client, button_action):
     button_action_name = button_action.name
-    log(f'Publishing coop door button move {button_action_name}')
-    client.publish(MQTT_COMMAND_TOPIC, button_action_name)
-    log(f'Published coop door button move {button_action_name}')
+    log(f'Publishing coop door button {button_action_name}')
+    state_info = client.publish(MQTT_COMMAND_TOPIC, button_action_name)
+    log(f'Published coop door button {button_action_name} with rc {state_info.rc}')
 
 def publish_realtime_state(client, state):
     state_name = state.name
     log(f'Publishing coop door real state {state_name}')
-    client.publish(MQTT_COOP_DOOR_REALTIME_STATE_TOPIC, state_name)
-    log(f'Published coop door real state {state_name}')
+    state_info = client.publish(MQTT_COOP_DOOR_REALTIME_STATE_TOPIC, state_name)
+    log(f'Published coop door real state {state_name} with rc {state_info.rc}')
 
 def on_connect(client, userdata, flags, result_code, properties):
     if result_code == 0:

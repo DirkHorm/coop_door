@@ -58,8 +58,9 @@ def publish_state(new_state):
 
         # Only open and closed are published to the state topic which can be used to set a switch in OpenHab, e.g.
         if new_state in [CoopDoorState.OPEN.name, CoopDoorState.CLOSED.name]:
-            state_info = client.publish(MQTT_COOP_DOOR_STATE_TOPIC, new_state, retain=True)
-            log(f'Published state {new_state} to topic {MQTT_COOP_DOOR_STATE_TOPIC} with rc {state_info.rc}')
+            #state_info = client.publish(MQTT_COOP_DOOR_STATE_TOPIC, new_state, retain=True)
+            #log(f'Published state {new_state} to topic {MQTT_COOP_DOOR_STATE_TOPIC} with rc {state_info.rc}')
+            pass
 
         last_state = new_state
 
