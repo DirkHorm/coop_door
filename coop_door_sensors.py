@@ -19,7 +19,7 @@ SENSOR_COOP_DOOR_CLOSED_PIN = cfg.get_coop_door_sensors_close_pin()
 MQTT_COOP_DOOR_STATE_TOPIC = cfg.get_mqtt_topic_state()
 MQTT_COOP_DOOR_REALTIME_STATE_TOPIC = cfg.get_mqtt_topic_realtime_state()
 
-SENSOR_BOUNCE_TIME = 0.2
+SENSOR_BOUNCE_TIME = 0.01
 
 # Global last state to only publish a state, when it changed
 last_state = None
@@ -58,7 +58,7 @@ def publish_state(new_state):
 
         # Only open and closed are published to the state topic which can be used to set a switch in OpenHab, e.g.
         if new_state in [CoopDoorState.OPEN.name, CoopDoorState.CLOSED.name]:
-            #state_info = client.publish(MQTT_COOP_DOOR_STATE_TOPIC, new_state, retain=True)
+            state_info = client.publish(MQTT_COOP_DOOR_STATE_TOPIC, new_state, retain=True)
             #log(f'Published state {new_state} to topic {MQTT_COOP_DOOR_STATE_TOPIC} with rc {state_info.rc}')
             pass
 

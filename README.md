@@ -69,6 +69,10 @@ In my configuration the sensors are the single source of truth. Means, only if a
 |garden/chickens/coopdoor/state| OPEN, CLOSED            | The *coop_door_sensors.py* script publishes a message whenever one of the coop door sensors were activated                                                                                     |
 |garden/chickens/coopdoor/realtime-state| OPENED, RUNNING, CLOSED | The realtime state represents the real state of the coop door. When the sensors were activated it published OPEN or CLOSED; when both sensors were released, it publishes RUNNING |
 
+Since for me it was a little bit of playing around to find the best bounce time for my reed sensors, I added a "test" script in the test folder named *bounce_time.py*. Before running this script, adjust the open and close coop door and the open and closed sensor gpio pins.
+What it does is, it closes the door for *COOP_DOOR_DOWN_TIME* constants value seconds and then opens it for *COOP_DOOR_UP_TIME* constants value seconds.
+Whenever the sensor was "pressed" or "released" an output is given.
+
 ## Installation
 There are multiple ways of running the script(s). I installed all the Python libraries in a Python virtual environment.
 In this example, the right Python version is already installed on the Raspberry Pi and the coop door scripts are checked out to 
@@ -103,3 +107,109 @@ For a productive use it of course make sense to run the scripts as separate serv
 You can now use a client like Mqtt.fx to send messages to your script and check the logs what's happening.
 
 Have fun!
+
+### Setting Up Services
+To run the scripts as services, you can use the following scripts which you must add in */etc/systemd/system* on your raspberry pi.
+
+#### Coop Door Service
+In my case and for the following instructions the Coop Door Service is called *coop_door.service*.
+```
+[Unit]
+Description=Coop Door Control Service
+After=network.target sysinit.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/pi/coop
+# Delay, so GPIOs are ready when script is started
+ExecStartPre=/bin/sleep 5
+# Run the script from the virtual environment
+ExecStart=/pyVEnv/coop/bin/python /home/pi/coop/coop_door.py
+Restart=always
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONPATH=/home/pi/coop"
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+In case you use other directories/install path for your pyVEnv, you of course must adjust them before.
+
+#### Coop Door Buttons
+In my case and for the following instructions the Coop Door Buttons Service is called *coop_door_buttons.service*.
+```
+[Unit]
+Description=Coop Door Buttons Service
+After=network.target sysinit.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/pi/coop
+# Delay, so GPIOs are ready when script is started
+ExecStartPre=/bin/sleep 5
+# Run the script from the virtual environment
+ExecStart=/pyVEnv/coop/bin/python /home/pi/coop/coop_door_buttons.py
+Restart=always
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONPATH=/home/pi/coop"
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### Coop Door Sensors
+In my case and for the following instructions the Coop Door Sensors Service is called *coop_door_sensors.service*.
+```
+[Unit]
+Description=Coop Door Sensors Control Service
+After=network.target sysinit.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/pi/coop
+# Delay, so GPIOs are ready when script is started
+ExecStartPre=/bin/sleep 5
+# Run the script from the virtual environment
+ExecStart=/pyVEnv/coop/bin/python /home/pi/coop/coop_door_sensors.py
+Restart=always
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONPATH=/home/pi/coop"
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### Enabling And Starting The Services
+To enable the services, so they are respected by the raspberry pi, run the following commands once
+
+*sudo systemctl daemon-reload*
+
+*sudo systemctl enable coop_door.service*
+
+*sudo systemctl enable coop_door_buttons.service*
+
+*sudo systemctl enable coop_door_sensors.service*
+
+Whenever you want to (re)start your services you can do it with the following commands
+
+*sudo systemctl start|stop|restart coop_door.service*
+
+*sudo systemctl start|stop|restart coop_door_buttons.service*
+
+*sudo systemctl start|stop|restart coop_door_sensors.service*
+
+Of course you only use one of the commands *start|stop|restart* without the *|*, depending which action to execute with your service!
