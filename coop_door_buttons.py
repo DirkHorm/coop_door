@@ -31,25 +31,25 @@ down_button = None
 
 def coop_door_open():
     log(f'Button up pressed (confirmed)')
-    current_date_and_time = dt.datetime.now()
-    earliest_open_datetime = dt.datetime(
-        current_date_and_time.year,
-        current_date_and_time.month,
-        current_date_and_time.day,
-        7, 30, 0, 0
-    )
-    latest_open_datetime = dt.datetime(
-        current_date_and_time.year,
-        current_date_and_time.month,
-        current_date_and_time.day,
-        22, 0, 0, 0
-    )
-
-    if earliest_open_datetime < current_date_and_time < latest_open_datetime:
-        publish_button_press(client, CoopDoorCommand.OPEN)
-        publish_realtime_state(client, CoopDoorState.RUNNING)
-    else:
-        log(f'Prevented coop door from opening at {current_date_and_time}')
+    # current_date_and_time = dt.datetime.now()
+    # earliest_open_datetime = dt.datetime(
+    #     current_date_and_time.year,
+    #     current_date_and_time.month,
+    #     current_date_and_time.day,
+    #     7, 30, 0, 0
+    # )
+    # latest_open_datetime = dt.datetime(
+    #     current_date_and_time.year,
+    #     current_date_and_time.month,
+    #     current_date_and_time.day,
+    #     22, 0, 0, 0
+    # )
+    #
+    # if earliest_open_datetime < current_date_and_time < latest_open_datetime:
+    publish_button_press(client, CoopDoorCommand.OPEN)
+    publish_realtime_state(client, CoopDoorState.RUNNING)
+    # else:
+    #     log(f'Prevented coop door from opening at {current_date_and_time}')
 
 def coop_door_stop():
     log(f'Button stop pressed (confirmed)')
